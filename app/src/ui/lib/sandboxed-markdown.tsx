@@ -210,16 +210,12 @@ export class SandboxedMarkdown extends React.PureComponent<
 
   private async applyNodeFilters(parsedMarkdown: string): Promise<string> {
     const mdDoc = new DOMParser().parseFromString(parsedMarkdown, 'text/html')
+    // walker to be adjusted based on filter being applied.. right now emoji needs to look at all text nodes.
     const walk = document.createTreeWalker(mdDoc, NodeFilter.SHOW_TEXT, null)
     let textNode
-    let prevNode
     while ((textNode = walk.nextNode())) {
-      if (prevNode) {
-        mdDoc.removeChild(prevNode)
-      }
       const emojiFilter = new EmojiFilter(this.props.emoji)
       await emojiFilter.filter(textNode)
-      prevNode = textNode
     }
 
     return new XMLSerializer().serializeToString(mdDoc)
