@@ -37,7 +37,6 @@ export function wrapRichTextCommitMessage(
   maxSummaryLength = MaxSummaryLength
 ): { summary: ReadonlyArray<TokenResult>; body: ReadonlyArray<TokenResult> } {
   const tokens = tokenizer.tokenize(summaryText.trimRight())
-
   const summary = new Array<TokenResult>()
   const overflow = new Array<TokenResult>()
 

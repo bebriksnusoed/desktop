@@ -3,6 +3,7 @@ import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import marked from 'marked'
 import DOMPurify from 'dompurify'
+import { EmojiFilter } from '../../lib/markdown-filters/emoji-filter'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdownm to display */
@@ -19,6 +20,9 @@ interface ISandboxedMarkdownProps {
    * this will not fire.
    */
   readonly onMarkdownLinkClicked?: (url: string) => void
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 /**
@@ -179,6 +183,8 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     const sanitizedHTML = DOMPurify.sanitize(parsedMarkdown)
 
+    const filteredHTML = await this.applyNodeFilters(sanitizedHTML)
+
     const src = `
       <html>
         <head>
@@ -186,7 +192,7 @@ export class SandboxedMarkdown extends React.PureComponent<
           ${styleSheet}
         </head>
         <body class="markdown-body">
-          ${sanitizedHTML}
+          ${filteredHTML}
         </body>
       </html>
     `
@@ -200,6 +206,18 @@ export class SandboxedMarkdown extends React.PureComponent<
     // parent dom and we want all rendering to be isolated to our sandboxed iframe.
     // -- https://csplite.com/csp/test188/
     this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
+  }
+
+  private async applyNodeFilters(parsedMarkdown: string): Promise<string> {
+    let textNode
+    const mdDoc = new DOMParser().parseFromString(parsedMarkdown, 'text/html')
+    const walk = document.createTreeWalker(mdDoc, NodeFilter.SHOW_TEXT, null)
+    while ((textNode = walk.nextNode())) {
+      const emojiFilter = new EmojiFilter(this.props.emoji)
+      await emojiFilter.filter(textNode)
+    }
+
+    return new XMLSerializer().serializeToString(mdDoc)
   }
 
   public render() {
