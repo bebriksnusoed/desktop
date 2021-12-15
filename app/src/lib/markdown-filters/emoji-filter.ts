@@ -55,7 +55,8 @@ export class EmojiFilter {
     }
 
     const parent = node.parentElement
-    parent.replaceChild(firstNode, node)
+    node.textContent = '' // Hmm.. feels bad practice to just leave these empty nodes around, but if I try to replace or delete the tree walker stops because node is gone..
+    parent.appendChild(firstNode)
     for (const newNode of newNodes) {
       parent.appendChild(newNode)
     }

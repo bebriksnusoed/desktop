@@ -297,7 +297,7 @@ changes from the original, just a note that this will not match 1-1)
 	vertical-align: text-top;
 	background-color: transparent;
 	height: var(--font-size);
-	width: var(--font-size;)
+	width: var(--font-size);
 }
 
 .markdown-body span.frame {

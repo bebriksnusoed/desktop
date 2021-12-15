@@ -209,12 +209,17 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   private async applyNodeFilters(parsedMarkdown: string): Promise<string> {
-    let textNode
     const mdDoc = new DOMParser().parseFromString(parsedMarkdown, 'text/html')
     const walk = document.createTreeWalker(mdDoc, NodeFilter.SHOW_TEXT, null)
+    let textNode
+    let prevNode
     while ((textNode = walk.nextNode())) {
+      if (prevNode) {
+        mdDoc.removeChild(prevNode)
+      }
       const emojiFilter = new EmojiFilter(this.props.emoji)
       await emojiFilter.filter(textNode)
+      prevNode = textNode
     }
 
     return new XMLSerializer().serializeToString(mdDoc)
